@@ -3,6 +3,7 @@ package TWT.Homework.VoteSimulator.service.impl;
 import TWT.Homework.VoteSimulator.dao.UserSchemaMapper;
 import TWT.Homework.VoteSimulator.dao.VoteSimulatorMapper;
 import TWT.Homework.VoteSimulator.entity.VoteSchema;
+import TWT.Homework.VoteSimulator.service.UserService;
 import TWT.Homework.VoteSimulator.service.VoteService;
 import TWT.Homework.VoteSimulator.utils.APIResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,8 @@ public class VoteServiceImpl implements VoteService {
     VoteSimulatorMapper voteSimulatorMapper;
     @Autowired
     UserSchemaMapper userSchemaMapper;
+    @Autowired
+    UserService userService;
 
     private ReentrantLock lock = new ReentrantLock();
 
@@ -30,7 +33,7 @@ public class VoteServiceImpl implements VoteService {
         try{
             return APIResponse.success(voteSimulatorMapper.getAllQuestion());
         }catch(Exception e){
-            return APIResponse.error(500, "[ErrorMessage(GetAllVoteError)]:"+e.getMessage());
+            return APIResponse.error(500, "[Get All Question Error]"+e.getMessage());
         }finally {
             lock.unlock();
         }
@@ -44,7 +47,7 @@ public class VoteServiceImpl implements VoteService {
             return APIResponse.success(voteSimulatorMapper.getAllChoice());
         }catch (Exception e){
             System.out.println(e.getMessage());
-            return APIResponse.error(500, "[ErrorMessage]:"+e.getMessage());
+            return APIResponse.error(500, "[Get All Choice Error]"+e.getMessage());
         }finally {
             lock.unlock();
         }
@@ -52,25 +55,43 @@ public class VoteServiceImpl implements VoteService {
 
     @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
     @Override
-    public APIResponse getUserVote(String name, String code) {
+    public APIResponse getAllVote() {
         lock.lock();
         try {
-            int userId = userSchemaMapper.getUserId(name);
-            List<Integer> VoteIdList = voteSimulatorMapper.getAllVoteId(userId);
+            List<Integer> VoteIdList = voteSimulatorMapper.getAllVoteId();
             List<VoteSchema> VoteList = new ArrayList<>();
-            for(Integer voteId:VoteIdList){
-                VoteSchema voteSchema = new VoteSchema();
-                voteSchema.questionSchema = voteSimulatorMapper.getIndividualQuestion(voteId);
-                voteSchema.choiceList = voteSimulatorMapper.getIndividualVoteChoice(voteId);
-                VoteList.add(voteSchema);
-                    System.out.println(voteId);
-                    System.out.println(voteSchema);
-                    System.out.println(VoteList);
+            List<String> TempList;
+            for (Integer voteId : VoteIdList) {
+                TempList = voteSimulatorMapper.getQuestion(voteId);
+                if (TempList.size()==0)
+                    return APIResponse.error(500, "[Get Individual Question Error]Invalid voteId " + voteId.toString());
+                VoteList.add(new VoteSchema(voteId, TempList.get(0), voteSimulatorMapper.getVoteChoice(voteId)));
             }
-            System.out.println(VoteList);
             return APIResponse.success(VoteList);
         }catch (Exception e){
-            return APIResponse.error(500,"[ErrorMessage(GetUserVotes)]:"+e.getMessage());
+            System.out.println(e.getMessage());
+            return APIResponse.error(500,"[Get All Vote Error]"+e.getMessage());
+        }
+    }
+
+    @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
+    @Override
+    public APIResponse getUserVote(int userId) {
+        lock.lock();
+        try {
+            List<Integer> VoteIdList = voteSimulatorMapper.getMyVoteId(userId);
+            List<VoteSchema> VoteList = new ArrayList<>();
+            List<String> TempList;
+            for (Integer voteId : VoteIdList) {
+                TempList = voteSimulatorMapper.getQuestion(voteId);
+                if (TempList.size()==0)
+                    return APIResponse.error(500, "[Get Individual Question Error]Invalid voteId " + voteId.toString());
+                VoteList.add(new VoteSchema(voteId, TempList.get(0), voteSimulatorMapper.getVoteChoice(voteId)));
+            }
+            return APIResponse.success(VoteList);
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+            return APIResponse.error(500,"[Get User Vote Error]"+e.getMessage());
         }finally {
             lock.unlock();
         }
@@ -78,12 +99,11 @@ public class VoteServiceImpl implements VoteService {
 
     @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
     @Override
-    public APIResponse addVote(String name, String code, String question, List<String> choiceList){
+    public APIResponse addVote(int userId, String question, List<String> choiceList){
         lock.lock();
         try {
-            int userId = userSchemaMapper.getUserId(name);
             voteSimulatorMapper.addQuestion(question, userId);
-            int voteId = voteSimulatorMapper.getVoteIdThroughQuestion(question, userId);
+            int voteId = voteSimulatorMapper.getVoteId(question);
             for (String choice : choiceList) {
                 int choiceId = choiceList.indexOf(choice) + 1;
                 voteSimulatorMapper.addChoice(choice, choiceId, voteId);
@@ -91,7 +111,7 @@ public class VoteServiceImpl implements VoteService {
             return APIResponse.success(1);
         }catch (Exception e){
             System.out.println(e.getMessage());
-            return APIResponse.error(500, "[ErrorMessage(AddVote)]:"+e.getMessage());
+            return APIResponse.error(500, "[Add Vote Error]"+e.getMessage());
         }finally {
             lock.unlock();
         }
@@ -99,21 +119,77 @@ public class VoteServiceImpl implements VoteService {
 
     @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
     @Override
-    public APIResponse deleteVote(String name, String code, int voteId) {
+    public APIResponse deleteVote(int userId, int voteId) {
         lock.lock();
         try {
-            if(userSchemaMapper.getUserId(name)== voteSimulatorMapper.getUserIdThroughVoteId(voteId)) {
-                voteSimulatorMapper.deleteQuestion(voteId);
-                voteSimulatorMapper.deleteChoice(voteId);
-                return APIResponse.success(1);
-            }else{
-                return APIResponse.error(500, "[ErrorMessage]:Not Your Vote. You can not delete it.");
+            List<Integer> TempList = voteSimulatorMapper.getUserId(voteId, "");
+            if (TempList.size()!=0) {
+                Integer userIdTemp = TempList.get(0);
+                if(userIdTemp == userId) {
+                    voteSimulatorMapper.deleteQuestion(voteId);
+                    voteSimulatorMapper.deleteChoice(voteId);
+                    voteSimulatorMapper.deleteAnswer(voteId);
+                    return APIResponse.success(1);
+                }
+                return APIResponse.error(500, "[Delete Vote Error]Not Your Vote. You can not delete it.\nTry /myVote (Post Method) to Find Correct Vote.");
+            } else {
+                return APIResponse.error(500,"[Delete Vote Error]Invalid voteId.\nTry /myVote (Post Method) to Find Correct voteId.");
             }
         }catch (Exception e){
             System.out.println(e.getMessage());
-            return APIResponse.error(500, "[ErrorMessage(DeleteVote)]:"+e.getMessage());
+            return APIResponse.error(500, "[Delete Vote Error]"+e.getMessage());
         }finally {
             lock.unlock();
         }
     }
+
+    @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
+    @Override
+    public APIResponse participateVote(int userId, int voteId, int choiceId) {
+        lock.unlock();
+        try {
+            if(voteSimulatorMapper.getQuestion(voteId).size()==0)
+                return APIResponse.error(500,"[Participate Vote Error]Invalid voteId.\nTry /question for Correct voteId.");
+            List<String> choiceList = voteSimulatorMapper.getChoice(choiceId, voteId);
+            if(choiceList.size()==0)
+                return APIResponse.error(500, "[Participate Vote Error]Invalid choiceId.\nTry /choice for Correct choiceId.");
+            String choice = choiceList.get(0);
+            if(voteSimulatorMapper.existAnswer(voteId, userId).size()==0) {
+                voteSimulatorMapper.updateChoiceTimes(choice, choiceId);
+                voteSimulatorMapper.addAnswer(voteId, choiceId, userId);
+                return APIResponse.success(1);
+            }else{
+                return APIResponse.error(500,"[Participate Vote Error]You've Voted this Before.");
+            }
+        }catch (Exception e){
+            return APIResponse.error(500, "[Participate Vote Error]"+e.getMessage());
+        }finally {
+            lock.unlock();
+        }
+    }
+
+    /*
+    @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
+    @Override
+    public APIResponse updateVote(int userId, int voteId, String question, List<String> addChoiceList, List<Integer> deChoiceList) {
+        lock.lock();
+        try {
+            if(voteSimulatorMapper.getQuestion(voteId).size()==0)
+                return APIResponse.error(500,"[Participate Vote Error]Invalid voteId.\nTry /allQuestion for Correct voteId.");
+            if(!"".equals(question))
+                voteSimulatorMapper.updateQuestion(question, voteId);
+            if(addChoiceList.size()!=0){
+                int choiceId=1, maxId = voteSimulatorMapper.getMaxChoiceId(voteId);
+                for(String choice:addChoiceList){
+                    voteSimulatorMapper.addChoice(choice, choiceId+maxId, voteId);
+                }
+            }
+            if(deChoiceList.size()!=0){
+                for(String choice:deChoiceList){
+                    voteSimulatorMapper.deleteChoice(choice);
+                }
+            }
+        }
+    }
+    */
 }

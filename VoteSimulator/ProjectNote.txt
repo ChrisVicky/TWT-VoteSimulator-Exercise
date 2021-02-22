@@ -1,0 +1,68 @@
+#Function
+##Three Parts
+    The User Controller
+    The Vote Simulator
+    The Alarm Part
+##The User Controller
+    TEST	1. Join in.(Post)
+    TEST	2. Log in Check.(Post, boolean)
+    TEST	3. Get All User.(Get)
+    TEST	4. Delete a user.(Delete)
+    TEST	5. Update a User's Name or Password.(Put)
+    TEST	6. Find User's Password Via Manager's Code.(Post)
+##The Vote Simulator
+    1. Publish a Vote.(Post)
+    2. Submit a Vote.('Ballot', Post)
+    	2.1 Check Log In.
+    	2.2 Vote
+    3. Get All Vote.(Get)
+    4. Delete a Vote.(Delete)
+    5. Update a Vote.
+        5.1 Only the Description can be Updated.
+        5.2 Or The Vote is Published Again.   
+    6. Check the Result Via
+        6.1 Vote Id.
+        6.2 Question.
+        6.3 User Id. --> Seperated By @Para 
+            6.3.1 All Vote Published By Him.
+            6.3.2 All Vote Submited By Him.
+##Alarm Parts --> Things Should Have Written.
+    1. APIResponse
+    2. Try and Lock
+    3. Check the ResponsePara
+##About the Mysql Tables
+###*user*
+    +---------+-------------+------+-----+---------+----------------+
+    | Field   | Type        | Null | Key | Default | Extra          |
+    +---------+-------------+------+-----+---------+----------------+
+    | user_id | int         | NO   | PRI | NULL    | auto_increment |
+    | NAME    | varchar(50) | NO   | UNI | NULL    |                |
+    | CODE    | varchar(50) | NO   |     | NULL    |                |
+    +---------+-------------+------+-----+---------+----------------+
+###*question*
+    +----------+--------------+------+-----+---------+----------------+
+    | Field    | Type         | Null | Key | Default | Extra          |
+    +----------+--------------+------+-----+---------+----------------+
+    | vote_id  | int          | NO   | PRI | NULL    | auto_increment |
+    | question | varchar(500) | NO   |     | NULL    |                |
+    | user_id  | int          | NO   |     | NULL    |                |
+    +----------+--------------+------+-----+---------+----------------+
+###*answer*
+	+-----------+------+------+-----+---------+----------------+
+	| Field     | Type | Null | Key | Default | Extra          |
+	+-----------+------+------+-----+---------+----------------+
+	| id        | int  | NO   | PRI | NULL    | auto_increment |
+	| vote_id   | int  | NO   |     | NULL    |                |
+	| choice_id | int  | NO   |     | NULL    |                |
+	| user_id   | int  | NO   |     | NULL    |                |
+	+-----------+------+------+-----+---------+----------------+
+###*choice*
+    +-----------+--------------+------+-----+---------+-------+
+    | Field     | Type         | Null | Key | Default | Extra |
+    +-----------+--------------+------+-----+---------+-------+
+    | choice    | varchar(500) | NO   |     | NULL    |       |
+    | choice_id | int          | NO   |     | NULL    |       |
+    | vote_id   | int          | NO   |     | NULL    |       |
+    | times     | int          | NO   |     | NULL    |       |
+    +-----------+--------------+------+-----+---------+-------+
+

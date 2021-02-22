@@ -10,6 +10,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class VoteSchema {
-    public QuestionSchema questionSchema;
+    public int voteId;
+    public String question;
     public List<ChoiceSchema> choiceList;
 }

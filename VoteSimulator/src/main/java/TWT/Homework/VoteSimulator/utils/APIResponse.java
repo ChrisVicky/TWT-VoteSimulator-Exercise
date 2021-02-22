@@ -14,29 +14,26 @@ public class APIResponse {
 
     private int ErrorCode;
     private String Message;
-    private List<UserSchema> Result_List;
     private Object Result;
     public APIResponse(int error_Code, String message){
         this.ErrorCode = error_Code;
         this.Message = message;
     }
-    public APIResponse(int error_code, List<UserSchema> result){
+    public APIResponse(int error_code, Object result){
         this.ErrorCode = error_code;
         this.Result = result;
     }
-    public APIResponse(String message, List<UserSchema> result){
+    public APIResponse(String message, Object result){
         this.Message = message;
         this.Result = result;
     }
 
     public static APIResponse error(int code, String message){
-        return new APIResponse(code,message,null,null);
+        return new APIResponse(code,message,null);
     }
-    public static APIResponse success(List<UserSchema> result){
-        return new APIResponse(0,"OK", result,null);
-    }
+
     public static APIResponse success(Object result){
-        return new APIResponse(0,"OK",null,result);
+        return new APIResponse(0,"OK",result);
     }
 
 }

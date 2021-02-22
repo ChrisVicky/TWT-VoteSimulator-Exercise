@@ -11,11 +11,13 @@ import java.util.List;
 @Mapper
 public interface UserSchemaMapper {
     public List<UserSchema> getAllUser();
+    public List<String> getAllUserName();
+    public List<String> getUserCode(String name);
+    public List<String> getManagerCode(String managerName);
+    public List<Integer> getUserId(String name);
     public int addUser(String name, String code);
     public int updateUserCode(String name, String code, String newCode);
+    public int updateUserName(String name, String code, String newName);
+    public int updateUserNameCode(String name, String code, String newName, String newCode);
     public int deleteUser(String name, String code);
-    public List<String> getAllUserName();
-    public int getUserId(String name);
-    public List<String> showTable();
-    public String getUserCode(String name);
 }

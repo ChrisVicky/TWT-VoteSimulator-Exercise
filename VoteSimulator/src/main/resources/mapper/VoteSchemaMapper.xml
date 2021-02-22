@@ -3,18 +3,30 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="TWT.Homework.VoteSimulator.dao.VoteSimulatorMapper">
-    <select id="getAllQuestion" resultType="QuestionSchema"> SELECT * FROM question; </select>
-    <select id="getAllChoice" resultType="ChoiceSchema"> SELECT * FROM choice; </select>
-    <select id="getAllVoteId" resultType="int"> SELECT question.vote_id FROM question WHERE user_id = #{useId}; </select>
-    <select id="getIndividualQuestion" resultType="QuestionSchema"> SELECT * FROM question WHERE vote_id = #{voteId}; </select>
-    <select id="getIndividualVoteChoice" resultType="ChoiceSchema"> SELECT * FROM choice WHERE vote_id = #{voteId}; </select>
-    <select id="getVoteIdThroughQuestion" resultType="int"> SELECT vote_id FROM question WHERE question = #{question} AND user_id = #{userId}; </select>
-    <select id="getUserIdThroughVoteId" resultType="int"> SELECT user_id FROM question WHERE question.vote_id = #{voteId}; </select>
-
 
     <insert id="addQuestion"> INSERT INTO question (question, user_id) VALUES (#{question}, #{userId}); </insert>
     <insert id="addChoice"> INSERT INTO choice (choice, choice_id, vote_id, times) VALUES (#{choice}, #{choiceId}, #{voteId}, 0); </insert>
+    <insert id="addAnswer"> INSERT INTO answer (vote_id, choice_id, user_id) VALUES (#{voteId}, #{choiceId}, #{userId}); </insert>
 
-    <delete id="deleteQuestion"> DELETE FROM question WHERE question.vote_id=#{voteId}; </delete>
-    <delete id="deleteChoice"> DELETE FROM choice WHERE choice.vote_id=#{voteId}; </delete>
+    <delete id="deleteQuestion"> DELETE FROM question WHERE question.vote_id = #{voteId}; </delete>
+    <delete id="deleteChoice"> DELETE FROM choice WHERE choice.vote_id = #{voteId}; </delete>
+    <delete id="deleteAnswer"> DELETE FROM answer WHERE answer.vote_id = #{voteId}; </delete>
+
+    <update id="updateChoiceTimes"> UPDATE choice SET times = times + 1 WHERE choice = #{choice} OR choice_id = #{choiceID};</update>
+    <update id="updateQuestion"> UPDATE question SET question = #{question} WHERE vote_id = #{voteId}; </update>
+
+    <select id="getAllQuestion" resultType="QuestionSchema"> SELECT question.*, user.NAME FROM question, NAME WHERE question.user_id = user.user_id; </select>
+    <select id="getAllChoice" resultType="ChoiceSchema"> SELECT * FROM choice; </select>
+    <select id="getAllVoteId" resultType="int"> SELECT question.vote_id FROM question; </select>
+    <select id="getMyVoteId" resultType="int"> SELECT question.vote_id FROM question WHERE question.user_id = #{useId}; </select>
+    <select id="getQuestion" resultType="String"> SELECT question.question FROM question WHERE question.vote_id = #{voteId}; </select>
+    <select id="getVoteChoice" resultType="ChoiceSchema"> SELECT * FROM choice WHERE choice.vote_id = #{voteId}; </select>
+    <select id="getVoteId" resultType="int"> SELECT vote_id FROM question WHERE question.question = #{question}; </select>
+    <select id="getUserId" resultType="int"> SELECT user_id FROM question WHERE question.vote_id = #{voteId} OR question.question=#{question}; </select>
+    <select id="getChoiceId" resultType="int"> SELECT choice_id FROM choice WHERE choice.choice=#{choice}; </select>
+    <select id="getChoice" resultType="String"> SELECT choice FROM choice WHERE choice_id = #{choiceId} AND vote_id = #{voteId}; </select>
+    <select id="checkExistVote" resultType="boolean"> SELECT * FROM question WHERE question.vote_id=#{voteId}; </select>
+    <select id="existAnswer" resultType="AnswerSchema"> SELECT * FROM answer WHERE vote_id=#{voteId} AND user_id=#{userId};</select>
+    <select id="getMaxChoiceId" resultType="int"> SELECT MAX(choice_id) FROM choice WHERE vote_id = #{voteId}; </select>
+
 </mapper>

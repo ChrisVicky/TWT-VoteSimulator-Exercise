@@ -11,4 +11,5 @@ public class QuestionSchema {
     public int voteId;
     public String question;
     public int userId;
+    public String userName;
 }
