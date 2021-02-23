@@ -74,6 +74,8 @@ public class UserController {
     public APIResponse findCode(@RequestParam("name") String name,
                                 @RequestParam("managerName") String managerName,
                                 @RequestParam("managerCode") String managerCode){
+        if(userSchemaMapper.getUserId(name).size()==0)
+            return APIResponse.error(500, "[Find Code Error]Absent name.");
         return userService.findCode(name, managerName, managerCode);
     }
 

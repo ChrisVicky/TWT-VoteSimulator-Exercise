@@ -11,22 +11,25 @@
     <delete id="deleteQuestion"> DELETE FROM question WHERE question.vote_id = #{voteId}; </delete>
     <delete id="deleteChoice"> DELETE FROM choice WHERE choice.vote_id = #{voteId}; </delete>
     <delete id="deleteAnswer"> DELETE FROM answer WHERE answer.vote_id = #{voteId}; </delete>
+    <delete id="deleteOneAnswer"> DELETE FROM answer WHERE vote_id = #{voteId} AND choice_id = #{choiceId}; </delete>
 
-    <update id="updateChoiceTimes"> UPDATE choice SET times = times + 1 WHERE choice = #{choice} OR choice_id = #{choiceID};</update>
+    <update id="updateChoiceTimes"> UPDATE choice SET times = times + 1 WHERE choice_id = #{choiceId} AND vote_id = #{voteId}; </update>
     <update id="updateQuestion"> UPDATE question SET question = #{question} WHERE vote_id = #{voteId}; </update>
+    <update id="decreaseChoiceTimes"> UPDATE choice SET times = times - 1 WHERE choice_id = #{choiceId} AND vote_id = #{voteId}; </update>
 
-    <select id="getAllQuestion" resultType="QuestionSchema"> SELECT question.*, user.NAME FROM question, NAME WHERE question.user_id = user.user_id; </select>
+    <select id="getAllQuestion" resultType="QuestionSchema"> SELECT question.*, user.NAME as userName FROM question, user WHERE question.user_id = user.user_id; </select>
     <select id="getAllChoice" resultType="ChoiceSchema"> SELECT * FROM choice; </select>
     <select id="getAllVoteId" resultType="int"> SELECT question.vote_id FROM question; </select>
     <select id="getMyVoteId" resultType="int"> SELECT question.vote_id FROM question WHERE question.user_id = #{useId}; </select>
     <select id="getQuestion" resultType="String"> SELECT question.question FROM question WHERE question.vote_id = #{voteId}; </select>
     <select id="getVoteChoice" resultType="ChoiceSchema"> SELECT * FROM choice WHERE choice.vote_id = #{voteId}; </select>
+    <select id="getVoteQuestion" resultType="String"> SELECT question FROM question WHERE vote_id = #{voteId}; </select>
     <select id="getVoteId" resultType="int"> SELECT vote_id FROM question WHERE question.question = #{question}; </select>
     <select id="getUserId" resultType="int"> SELECT user_id FROM question WHERE question.vote_id = #{voteId} OR question.question=#{question}; </select>
-    <select id="getChoiceId" resultType="int"> SELECT choice_id FROM choice WHERE choice.choice=#{choice}; </select>
     <select id="getChoice" resultType="String"> SELECT choice FROM choice WHERE choice_id = #{choiceId} AND vote_id = #{voteId}; </select>
     <select id="checkExistVote" resultType="boolean"> SELECT * FROM question WHERE question.vote_id=#{voteId}; </select>
     <select id="existAnswer" resultType="AnswerSchema"> SELECT * FROM answer WHERE vote_id=#{voteId} AND user_id=#{userId};</select>
     <select id="getMaxChoiceId" resultType="int"> SELECT MAX(choice_id) FROM choice WHERE vote_id = #{voteId}; </select>
+    <select id="getChoiceId" resultType="int"> SELECT choice_id FROM answer WHERE user_id = #{userId} AND vote_id = #{voteId}; </select>
 
 </mapper>

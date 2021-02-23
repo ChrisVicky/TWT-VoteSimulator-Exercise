@@ -15,6 +15,7 @@ public interface UserSchemaMapper {
     public List<String> getUserCode(String name);
     public List<String> getManagerCode(String managerName);
     public List<Integer> getUserId(String name);
+    public List<String> getUserName(int userId);
     public int addUser(String name, String code);
     public int updateUserCode(String name, String code, String newCode);
     public int updateUserName(String name, String code, String newName);

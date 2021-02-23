@@ -13,4 +13,6 @@ public class VoteSchema {
     public int voteId;
     public String question;
     public List<ChoiceSchema> choiceList;
+    public String userName;
+    public int userId;
 }

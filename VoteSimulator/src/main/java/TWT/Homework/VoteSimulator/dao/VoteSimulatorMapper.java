@@ -18,8 +18,11 @@ public interface VoteSimulatorMapper {
     public void deleteQuestion(int voteId);
     public void deleteChoice(int voteId);
     public void deleteAnswer(int voteId);
+    public void deleteOneAnswer(int voteId, int choiceId);
 
-    public void updateChoiceTimes(String choice, int choiceId);
+    public void updateChoiceTimes(int voteId, int choiceId);
+    public void decreaseChoiceTimes(int voteId, int choiceId);
+
 
 
     public List<QuestionSchema> getAllQuestion();
@@ -28,13 +31,14 @@ public interface VoteSimulatorMapper {
     public List<Integer> getAllVoteId();
     public List<String> getQuestion(int voteId);
     public List<ChoiceSchema> getVoteChoice(int voteId);
+    public String getVoteQuestion(int voteId);
     public int getVoteId(String question);
     public List<Integer> getUserId(int voteId, String question);
     public List<String> getChoice(int choiceId, int voteId);
     public List<AnswerSchema> existAnswer(int voteId, int userId);
+    public int getChoiceId(int userId, int voteId);
 
     public void updateQuestion(String question, int voteId);
     public int getMaxChoiceId(int voteId);
-    public int getChoiceId(String choice, int voteId);
 
 }

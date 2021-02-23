@@ -9,6 +9,7 @@
     <select id="getUserId" resultType="int"> SELECT user.user_id FROM user WHERE NAME=#{name}; </select>
     <select id="getUserCode" resultType="String"> SELECT user.CODE FROM user WHERE NAME=#{name}; </select>
     <select id="getManagerCode" resultType="String"> SELECT CODE FROM manager WHERE NAME=#{managerName}; </select>
+    <select id="getUserName" resultType="String"> SELECT NAME FROM user WHERE user_id = #{userId}; </select>
 
     <insert id="addUser"> INSERT INTO user (NAME, CODE) VALUES (#{name}, #{code}); </insert>
 
