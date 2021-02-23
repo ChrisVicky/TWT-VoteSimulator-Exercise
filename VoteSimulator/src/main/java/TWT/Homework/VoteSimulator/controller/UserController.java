@@ -26,10 +26,6 @@ public class UserController {
         return APIResponse.error(500,"[Manager Log In Error]Wrong Manager Code.");
     }
 
-    @GetMapping("/userName")
-    public APIResponse getAllUserName(){
-        return userService.getAllUserName();
-    }
 
     @PostMapping("/user")
     public APIResponse addUser(@RequestParam("name") String name,
@@ -69,14 +65,18 @@ public class UserController {
 
     }
 
-
-    @PostMapping("/findCode")
+    @GetMapping("/findCode")
     public APIResponse findCode(@RequestParam("name") String name,
                                 @RequestParam("managerName") String managerName,
                                 @RequestParam("managerCode") String managerCode){
         if(userSchemaMapper.getUserId(name).size()==0)
             return APIResponse.error(500, "[Find Code Error]Absent name.");
         return userService.findCode(name, managerName, managerCode);
+    }
+
+    @GetMapping("/userName")
+    public APIResponse getAllUserName(){
+        return userService.getAllUserName();
     }
 
 }

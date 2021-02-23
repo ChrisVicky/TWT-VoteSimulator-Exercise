@@ -37,6 +37,7 @@ public interface VoteSimulatorMapper {
     public List<String> getChoice(int choiceId, int voteId);
     public List<AnswerSchema> existAnswer(int voteId, int userId);
     public int getChoiceId(int userId, int voteId);
+    public List<Integer> getMyParticipatedVoteId(int userId);
 
     public void updateQuestion(String question, int voteId);
     public int getMaxChoiceId(int voteId);

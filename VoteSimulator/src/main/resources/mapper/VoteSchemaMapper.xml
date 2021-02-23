@@ -31,5 +31,7 @@
     <select id="existAnswer" resultType="AnswerSchema"> SELECT * FROM answer WHERE vote_id=#{voteId} AND user_id=#{userId};</select>
     <select id="getMaxChoiceId" resultType="int"> SELECT MAX(choice_id) FROM choice WHERE vote_id = #{voteId}; </select>
     <select id="getChoiceId" resultType="int"> SELECT choice_id FROM answer WHERE user_id = #{userId} AND vote_id = #{voteId}; </select>
+    <select id="getMyParticipatedVoteId" resultType="int"> SELECT vote_id FROM answer WHERE user_id = #{userId}; </select>
+
 
 </mapper>

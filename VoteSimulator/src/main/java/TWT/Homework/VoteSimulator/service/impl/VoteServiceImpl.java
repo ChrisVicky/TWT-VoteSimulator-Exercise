@@ -90,6 +90,37 @@ public class VoteServiceImpl implements VoteService {
 
     @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
     @Override
+    public APIResponse getResult(int voteId) {
+        lock.lock();
+        try {
+            if(voteSimulatorMapper.getVoteChoice(voteId).size()==0)
+                return APIResponse.error(500, "[Get Result Error]:Invalid voteId. Try /vote (Get Method) for Correct voteId.");
+            List<Integer> voteIdList = new ArrayList<>();
+            voteIdList.add(voteId);
+            return getVote(voteIdList);
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+            return APIResponse.error(500,"[Get Result Error]"+e.getMessage());
+        }
+    }
+
+    @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
+    @Override
+    public APIResponse getParticipation(int userId) {
+        lock.lock();
+        try {
+            List<Integer> VoteIdList = voteSimulatorMapper.getMyParticipatedVoteId(userId);
+            return getVote(VoteIdList);
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+            return APIResponse.error(500,"[Get User Participation Error]"+e.getMessage());
+        }finally {
+            lock.unlock();
+        }
+    }
+
+    @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
+    @Override
     public APIResponse getUserVote(int userId) {
         lock.lock();
         try {
@@ -201,6 +232,21 @@ public class VoteServiceImpl implements VoteService {
             }
         }catch (Exception e){
             return APIResponse.error(500, "[Participate Vote Error]"+e.getMessage());
+        }finally {
+            lock.unlock();
+        }
+    }
+
+    @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
+    @Override
+    public APIResponse reParticipate(int userId, int voteId, int choiceId) {
+        lock.lock();
+        try {
+            System.out.println(deleteParticipation(userId, voteId));
+            return participateVote(userId, voteId, choiceId);
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+            return APIResponse.error(500, "[Re Participate Error]"+e.getMessage());
         }finally {
             lock.unlock();
         }

@@ -1,7 +1,9 @@
 package TWT.Homework.VoteSimulator.service.impl;
 
 import TWT.Homework.VoteSimulator.dao.UserSchemaMapper;
+import TWT.Homework.VoteSimulator.dao.VoteSimulatorMapper;
 import TWT.Homework.VoteSimulator.service.UserService;
+import TWT.Homework.VoteSimulator.service.VoteService;
 import TWT.Homework.VoteSimulator.utils.APIResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,11 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     UserSchemaMapper userSchemaMapper;
+    @Autowired
+    VoteSimulatorMapper voteSimulatorMapper;
+    @Autowired
+    VoteService voteService;
+
 
     private static ReentrantLock lock = new ReentrantLock();
 
@@ -72,8 +79,19 @@ public class UserServiceImpl implements UserService {
             if("".equals(managerName) || "".equals(managerCode) || "".equals(name))
                 return APIResponse.error(500,"[Parameter Error]Invalid managerName/managerCode/name.");
             List<String> managerCodeList = userSchemaMapper.getManagerCode(managerName);
-            if(managerCode.equals(managerCodeList.get(0)))
+            if(managerCode.equals(managerCodeList.get(0))) {
+                int userId = userSchemaMapper.getUserId(name).get(0);
+                List<Integer> voteIdList = voteSimulatorMapper.getMyParticipatedVoteId(userId);
+                for(int voteId:voteSimulatorMapper.getMyVoteId(userId)){
+                    if(voteIdList.contains(voteId)) continue;
+                    voteIdList.add(voteId);
+                }
+                for(int voteId:voteIdList)
+                    voteService.deleteParticipation(userId, voteId);
+                for(int voteId:voteIdList)
+                    voteService.deleteVote(userId, voteId);
                 return APIResponse.success(userSchemaMapper.deleteUser(name, code));
+            }
             return APIResponse.error(500, "[Manager Log In Error]Wrong Manager Code/Name.");
         }catch (Exception e){
             return APIResponse.error(500, "[Deletion Error]"+e.getMessage());
