@@ -47,7 +47,7 @@ public class VoteController {
         }
     }
 
-    @PutMapping("/vote")
+    @PostMapping("/participate")
     public APIResponse participateVote(@RequestParam("name") String name,
                                        @RequestParam("code") String code,
                                        @RequestParam("voteId") int voteId,
@@ -66,7 +66,7 @@ public class VoteController {
         }
     }
 
-    @DeleteMapping("/vote")
+    @PostMapping("/deleteVote") //
     public APIResponse deleteVote(@RequestParam("name") String name,
                                   @RequestParam("code") String code,
                                   @RequestParam("voteId") int voteId){

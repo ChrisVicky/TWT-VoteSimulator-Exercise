@@ -15,7 +15,7 @@ public class UserController {
     @Autowired
     UserSchemaMapper userSchemaMapper;
 
-    @GetMapping("/user")
+    @GetMapping("/user")//PostMapping("/user")
     public APIResponse getAllUser(@RequestParam("managerName") String name,
                                   @RequestParam("managerCode") String code){
 
