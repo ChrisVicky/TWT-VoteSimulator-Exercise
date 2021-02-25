@@ -15,7 +15,7 @@ public class UserController {
     @Autowired
     UserSchemaMapper userSchemaMapper;
 
-    @GetMapping("/user")//PostMapping("/user")
+    @PostMapping("/getUser")//PostMapping("/user")
     public APIResponse getAllUser(@RequestParam("managerName") String name,
                                   @RequestParam("managerCode") String code){
 
@@ -27,13 +27,13 @@ public class UserController {
     }
 
 
-    @PostMapping("/user")
+    @PostMapping("/addUser")
     public APIResponse addUser(@RequestParam("name") String name,
                                @RequestParam("code") String code){
         return userService.addUser(name, code);
     }
 
-    @PutMapping("/user")
+    @PostMapping("/updateUser")
     public APIResponse updateUser(@RequestParam("name") String name,
                                   @RequestParam("code") String code,
                                   @RequestParam("newCode") String newCode,
@@ -49,7 +49,7 @@ public class UserController {
         }
     }
 
-    @DeleteMapping("/user")
+    @PostMapping("/deleteUser")
     public APIResponse deleteUser(@RequestParam("name") String name,
                                   @RequestParam("code") String code,
                                   @RequestParam("managerName") String managerName,
@@ -65,7 +65,7 @@ public class UserController {
 
     }
 
-    @GetMapping("/findCode")
+    @PostMapping("/findCode")
     public APIResponse findCode(@RequestParam("name") String name,
                                 @RequestParam("managerName") String managerName,
                                 @RequestParam("managerCode") String managerCode){

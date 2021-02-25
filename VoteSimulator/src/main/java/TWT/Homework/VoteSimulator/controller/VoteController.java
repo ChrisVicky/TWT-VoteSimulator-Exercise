@@ -30,7 +30,7 @@ public class VoteController {
     public APIResponse getAllVote(){ return voteService.getAllVote(); }
 
 
-    @PostMapping("/vote")
+    @PostMapping("/addVote")
     public APIResponse addVote(@RequestParam("name") String name,
                                @RequestParam("code") String code,
                                @RequestParam("question") String question,
@@ -81,7 +81,7 @@ public class VoteController {
         }
     }
 
-    @DeleteMapping("deVote")
+    @PostMapping("/deleteParticipation")
     public APIResponse deleteParticipation(@RequestParam("name") String name,
                                            @RequestParam("code") String code,
                                            @RequestParam("voteId") int voteId){
@@ -96,7 +96,7 @@ public class VoteController {
         }
     }
 
-    @PutMapping("/reVote")
+    @PostMapping("/reVote")
     public APIResponse reVote(@RequestParam("name") String name,
                               @RequestParam("code") String code,
                               @RequestParam("voteId") int voteId,
@@ -119,7 +119,7 @@ public class VoteController {
         return voteService.getResult(voteId);
     }
 
-    @GetMapping("/myParticipation")
+    @PostMapping("/myParticipation")
     public APIResponse getParticipation(@RequestParam("name") String name,
                                         @RequestParam("code") String code){
         if(userService.logIn(name, code)){
@@ -134,7 +134,7 @@ public class VoteController {
         }
     }
 
-    @GetMapping("/myVote")
+    @PostMapping("/myVote")
     public APIResponse getUserVote(@RequestParam("name") String name,
                                    @RequestParam("code") String code){
         if(userService.logIn(name, code)){
