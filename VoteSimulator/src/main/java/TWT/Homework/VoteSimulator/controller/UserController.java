@@ -6,6 +6,7 @@ import TWT.Homework.VoteSimulator.utils.APIResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpSession;
 import java.util.List;
 
 @RestController
@@ -14,6 +15,9 @@ public class UserController {
     UserService userService;
     @Autowired
     UserSchemaMapper userSchemaMapper;
+    @Autowired
+    HttpSession session;
+
 
     @PostMapping("/getUser")//PostMapping("/user")
     public APIResponse getAllUser(@RequestParam("managerName") String name,
@@ -26,6 +30,20 @@ public class UserController {
         return APIResponse.error(500,"[Manager Log In Error]Wrong Manager Code.");
     }
 
+    @PostMapping("/logIn")
+    public APIResponse logIn(@RequestParam("name") String name,
+                             @RequestParam("code") String code){
+        if(userService.logIn(name, code)){
+            session.setAttribute("user", name);
+            return APIResponse.success("[Log in Successfully.]");
+        }else{
+            if(userSchemaMapper.getUserId(name).size()!=0) {
+                return APIResponse.error(500, "[Log In Error]Wrong code.");
+            }
+            else
+                return APIResponse.error(500,"[Log In Error]Absent name.");
+        }
+    }
 
     @PostMapping("/addUser")
     public APIResponse addUser(@RequestParam("name") String name,
@@ -34,19 +52,10 @@ public class UserController {
     }
 
     @PostMapping("/updateUser")
-    public APIResponse updateUser(@RequestParam("name") String name,
-                                  @RequestParam("code") String code,
-                                  @RequestParam("newCode") String newCode,
+    public APIResponse updateUser(@RequestParam("newCode") String newCode,
                                   @RequestParam("newName") String newName){
-        if(userService.logIn(name, code)){
-            return userService.updateUser(name, code, newCode, newName);
-        }else{
-            if(userSchemaMapper.getUserId(name).size()!=0) {
-                return APIResponse.error(500, "[Log In Error]Wrong code.");
-            }
-            else
-                return APIResponse.error(500,"[Log In Error]Absent name.");
-        }
+        String name = session.getAttribute("name").toString();
+        return userService.updateUser(name, newCode, newName);
     }
 
     @PostMapping("/deleteUser")

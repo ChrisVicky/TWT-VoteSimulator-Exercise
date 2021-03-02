@@ -4,7 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="TWT.Homework.VoteSimulator.dao.UserSchemaMapper">
 
-    <select id="getAllUser" resultType="UserSchema"> SELECT * FROM user; </select>
+    <select id="getAllUser" resultType="User"> SELECT * FROM user; </select>
     <select id="getAllUserName" resultType="String"> SELECT user.NAME FROM user; </select>
     <select id="getUserId" resultType="int"> SELECT user.user_id FROM user WHERE NAME=#{name}; </select>
     <select id="getUserCode" resultType="String"> SELECT user.CODE FROM user WHERE NAME=#{name}; </select>
@@ -13,9 +13,9 @@
 
     <insert id="addUser"> INSERT INTO user (NAME, CODE) VALUES (#{name}, #{code}); </insert>
 
-    <update id="updateUserCode"> UPDATE user SET CODE = #{newCode} WHERE NAME = #{name} AND CODE = #{code}; </update>
-    <update id="updateUserName"> UPDATE user SET NAME = #{newName} WHERE NAME = #{name} AND CODE = #{code}; </update>
-    <update id="updateUserNameCode"> UPDATE user SET NAME = #{newName}, CODE = #{newCode} WHERE NAME = #{name} AND CODE = #{code}; </update>
+    <update id="updateUserCode"> UPDATE user SET CODE = #{newCode} WHERE NAME = #{name} ; </update>
+    <update id="updateUserName"> UPDATE user SET NAME = #{newName} WHERE NAME = #{name} ; </update>
+    <update id="updateUserNameCode"> UPDATE user SET NAME = #{newName}, CODE = #{newCode} WHERE NAME = #{name} ; </update>
 
     <delete id="deleteUser"> DELETE FROM user WHERE NAME=#{name} AND CODE=#{code}; </delete>
 </mapper>

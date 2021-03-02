@@ -7,6 +7,7 @@ import TWT.Homework.VoteSimulator.utils.APIResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpSession;
 import java.util.List;
 
 @RestController
@@ -17,6 +18,8 @@ public class VoteController {
     UserService userService;
     @Autowired
     UserSchemaMapper userSchemaMapper;
+    @Autowired
+    HttpSession session;
 
     @GetMapping("/question")
     public APIResponse getAllQuestion(){
@@ -31,121 +34,65 @@ public class VoteController {
 
 
     @PostMapping("/addVote")
-    public APIResponse addVote(@RequestParam("name") String name,
-                               @RequestParam("code") String code,
-                               @RequestParam("question") String question,
+    public APIResponse addVote(@RequestParam("question") String question,
                                @RequestParam("choice") List<String> choiceList){
-        if(userService.logIn(name, code)){
-            int userId = userSchemaMapper.getUserId(name).get(0);
-            System.out.println(userId);
-            return voteService.addVote(userId, question, choiceList);
-        }else{
-            if(userSchemaMapper.getUserId(name).size()!=0)
-                return APIResponse.error(500,"[Log In Error]Wrong code.");
-            else
-                return APIResponse.error(500,"[Log In Error]Invalid name.");
-        }
+        String name = session.getAttribute("user").toString();
+        int userId = userSchemaMapper.getUserId(name).get(0);
+        System.out.println(userId);
+        return voteService.addVote(userId, question, choiceList);
     }
 
     @PostMapping("/participate")
-    public APIResponse participateVote(@RequestParam("name") String name,
-                                       @RequestParam("code") String code,
-                                       @RequestParam("voteId") int voteId,
+    public APIResponse participateVote(@RequestParam("questionId") int questionId,
                                        @RequestParam("choiceId") int choiceId){
-        if(userService.logIn(name, code)){
-            System.out.println("Log in to Participate vote");
-            List<Integer> userIdList = userSchemaMapper.getUserId(name);
-            System.out.println(userIdList);
-            int userId = userIdList.get(0);
-            return voteService.participateVote(userId, voteId, choiceId);
-        }else{
-            if(userSchemaMapper.getUserId(name).size()!=0)
-                return APIResponse.error(500,"[Log In Error]Wrong code.");
-            else
-                return APIResponse.error(500,"[Log In Error]Absent name.");
-        }
+        System.out.println("Log in to Participate vote");
+        String name = session.getAttribute("user").toString();
+        int userId = userSchemaMapper.getUserId(name).get(0);
+        return voteService.participateVote(userId, questionId, choiceId);
     }
 
-    @PostMapping("/deleteVote") //
-    public APIResponse deleteVote(@RequestParam("name") String name,
-                                  @RequestParam("code") String code,
-                                  @RequestParam("voteId") int voteId){
-        if(userService.logIn(name, code)){
-            int userId = userSchemaMapper.getUserId(name).get(0);
-            return voteService.deleteVote(userId, voteId);
-        }else{
-            if(userSchemaMapper.getUserId(name).size()!=0)
-                return APIResponse.error(500,"[Log In Error]Wrong code.");
-            else
-                return APIResponse.error(500,"[Log In Error]Invalid name.");
-        }
+    @PostMapping("/deleteVote")
+    public APIResponse deleteVote(@RequestParam("questionId") int questionId){
+        String name = session.getAttribute("user").toString();
+        int userId = userSchemaMapper.getUserId(name).get(0);
+        return voteService.deleteVote(userId, questionId);
     }
 
     @PostMapping("/deleteParticipation")
-    public APIResponse deleteParticipation(@RequestParam("name") String name,
-                                           @RequestParam("code") String code,
-                                           @RequestParam("voteId") int voteId){
-        if(userService.logIn(name, code)){
-            int userId = userSchemaMapper.getUserId(name).get(0);
-            return voteService.deleteVote(userId, voteId);
-        }else{
-            if(userSchemaMapper.getUserId(name).size()!=0)
-                return APIResponse.error(500,"[Log In Error]Wrong code.");
-            else
-                return APIResponse.error(500,"[Log In Error]Invalid name.");
-        }
+    public APIResponse deleteParticipation(@RequestParam("questionId") int questionId){
+        String name = session.getAttribute("user").toString();
+        int userId = userSchemaMapper.getUserId(name).get(0);
+        return voteService.deleteVote(userId, questionId);
     }
 
     @PostMapping("/reVote")
-    public APIResponse reVote(@RequestParam("name") String name,
-                              @RequestParam("code") String code,
-                              @RequestParam("voteId") int voteId,
+    public APIResponse reVote(@RequestParam("questionId") int questionId,
                               @RequestParam("choiceId") int choiceId){
-        if(userService.logIn(name, code)){
-            System.out.println("Log in to ReParticipate vote");
-            int userId = userSchemaMapper.getUserId(name).get(0);
-            System.out.println(voteService.deleteParticipation(userId, voteId));
-            return voteService.participateVote(userId, voteId, choiceId);
-        }else{
-            if(userSchemaMapper.getUserId(name).size()!=0)
-                return APIResponse.error(500,"[Log In Error]Wrong code.");
-            else
-                return APIResponse.error(500,"[Log In Error]Absent name.");
-        }
+        String name = session.getAttribute("user").toString();
+        System.out.println("Log in to ReParticipate vote");
+        int userId = userSchemaMapper.getUserId(name).get(0);
+        System.out.println(voteService.deleteParticipation(userId, questionId));
+        return voteService.participateVote(userId, questionId, choiceId);
     }
 
-    @GetMapping("/result")
-    public APIResponse getResult(@RequestParam("voteId") int voteId){
-        return voteService.getResult(voteId);
+    @PostMapping("/result")
+    public APIResponse getResult(@RequestParam("questionId") int questionId){
+        return voteService.getResult(questionId);
     }
 
-    @PostMapping("/myParticipation")
-    public APIResponse getParticipation(@RequestParam("name") String name,
-                                        @RequestParam("code") String code){
-        if(userService.logIn(name, code)){
-            int userId = userSchemaMapper.getUserId(name).get(0);
-            return voteService.getParticipation(userId);
-        }else{
-            if(userSchemaMapper.getUserId(name).size()!=0)
-                return APIResponse.error(500,"[Log In Error]Wrong code.");
-            else
-                return APIResponse.error(500,"[Log In Error]Invalid name.");
-
-        }
+    @GetMapping("/myParticipation")
+    public APIResponse getParticipation(){
+        String name = session.getAttribute("user").toString();
+        int userId = userSchemaMapper.getUserId(name).get(0);
+        return voteService.getParticipation(userId);
     }
 
-    @PostMapping("/myVote")
-    public APIResponse getUserVote(@RequestParam("name") String name,
-                                   @RequestParam("code") String code){
-        if(userService.logIn(name, code)){
-            int userId = userSchemaMapper.getUserId(name).get(0);
-            return voteService.getUserVote(userId);
-        }else{
-            if(userSchemaMapper.getUserId(name).size()!=0)
-                return APIResponse.error(500,"[Log In Error]Wrong code.");
-            else
-                return APIResponse.error(500,"[Log In Error]Invalid name.");
-        }
+    @GetMapping("/myVote")
+    public APIResponse getUserVote(){
+        String name = session.getAttribute("user").toString();
+        System.out.println(name);
+        int userId = userSchemaMapper.getUserId(name).get(0);
+        return voteService.getUserVote(userId);
     }
 
     /*
@@ -153,7 +100,7 @@ public class VoteController {
     public APIResponse updateVote(@RequestParam("name") String name,
                                   @RequestParam("code") String code,
                                   @RequestParam("question") String question,
-                                  @RequestParam("voteId") int voteId,
+                                  @RequestParam("questionId") int questionId,
                                   @RequestParam("choice") List<String> choiceList,
                                   @RequestParam("deChoice") List<String> deChoiceList){
         if(userService.logIn(name, code)){
@@ -168,3 +115,4 @@ public class VoteController {
     }
     */
 }
+

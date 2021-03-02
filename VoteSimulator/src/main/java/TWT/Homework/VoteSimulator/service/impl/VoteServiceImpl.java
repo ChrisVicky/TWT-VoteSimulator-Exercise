@@ -2,10 +2,9 @@ package TWT.Homework.VoteSimulator.service.impl;
 
 import TWT.Homework.VoteSimulator.dao.UserSchemaMapper;
 import TWT.Homework.VoteSimulator.dao.VoteSimulatorMapper;
-import TWT.Homework.VoteSimulator.entity.AnswerSchema;
-import TWT.Homework.VoteSimulator.entity.ChoiceSchema;
-import TWT.Homework.VoteSimulator.entity.QuestionSchema;
-import TWT.Homework.VoteSimulator.entity.VoteSchema;
+import TWT.Homework.VoteSimulator.entity.Choice;
+import TWT.Homework.VoteSimulator.entity.Question;
+import TWT.Homework.VoteSimulator.entity.Vote;
 import TWT.Homework.VoteSimulator.service.UserService;
 import TWT.Homework.VoteSimulator.service.VoteService;
 import TWT.Homework.VoteSimulator.utils.APIResponse;
@@ -56,21 +55,25 @@ public class VoteServiceImpl implements VoteService {
         }
     }
 
-    public APIResponse getVote(List<Integer> VoteIdList){
-        List<VoteSchema> VoteList = new ArrayList<>();
+    public APIResponse getVote(List<Integer> questionIdList){
+        List<Vote> VoteList = new ArrayList<>();
         List<String> TempList;
         int userId;
         String userName, question;
-        List<ChoiceSchema> choiceList;
-        for (Integer voteId : VoteIdList) {
-            TempList = voteSimulatorMapper.getQuestion(voteId);
+        List<Choice> choiceList;
+        for (Integer questionId : questionIdList) {
+            TempList = voteSimulatorMapper.getQuestion(questionId);
             if (TempList.size()==0)
-                return APIResponse.error(500, "[Get Individual Question Error]Invalid voteId " + voteId);
+                return APIResponse.error(500, "[Get Individual Question Error]Invalid questionId " + questionId);
+            if(voteSimulatorMapper.getExistence(questionId)==1) continue;
             question = TempList.get(0);
-            choiceList = voteSimulatorMapper.getVoteChoice(voteId);
-            userId = voteSimulatorMapper.getUserId(voteId,"").get(0);
+            choiceList = voteSimulatorMapper.getVoteChoice(questionId);
+            for(Choice choice:choiceList){
+                choice.times = voteSimulatorMapper.getChoiceTimes(questionId, choice.choiceId);
+            }
+            userId = voteSimulatorMapper.getUserId(questionId,"").get(0);
             userName = userSchemaMapper.getUserName(userId).get(0);
-            VoteList.add(new VoteSchema(voteId, question, choiceList, userName, userId));
+            VoteList.add(new Vote(new Question(questionId, question, userId, userName), choiceList));
         }
         return APIResponse.success(VoteList);
     }
@@ -80,8 +83,8 @@ public class VoteServiceImpl implements VoteService {
     public APIResponse getAllVote() {
         lock.lock();
         try {
-            List<Integer> VoteIdList = voteSimulatorMapper.getAllVoteId();
-            return getVote(VoteIdList);
+            List<Integer> questionIdList = voteSimulatorMapper.getAllQuestionId();
+            return getVote(questionIdList);
         }catch (Exception e){
             System.out.println(e.getMessage());
             return APIResponse.error(500,"[Get All Vote Error]"+e.getMessage());
@@ -90,14 +93,14 @@ public class VoteServiceImpl implements VoteService {
 
     @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
     @Override
-    public APIResponse getResult(int voteId) {
+    public APIResponse getResult(int questionId) {
         lock.lock();
         try {
-            if(voteSimulatorMapper.getVoteChoice(voteId).size()==0)
-                return APIResponse.error(500, "[Get Result Error]:Invalid voteId. Try /vote (Get Method) for Correct voteId.");
-            List<Integer> voteIdList = new ArrayList<>();
-            voteIdList.add(voteId);
-            return getVote(voteIdList);
+            if(voteSimulatorMapper.getVoteChoice(questionId).size()==0)
+                return APIResponse.error(500, "[Get Result Error]:Invalid questionId. Try /vote (Get Method) for Correct questionId.");
+            List<Integer> questionIdList = new ArrayList<>();
+            questionIdList.add(questionId);
+            return getVote(questionIdList);
         }catch (Exception e){
             System.out.println(e.getMessage());
             return APIResponse.error(500,"[Get Result Error]"+e.getMessage());
@@ -109,8 +112,8 @@ public class VoteServiceImpl implements VoteService {
     public APIResponse getParticipation(int userId) {
         lock.lock();
         try {
-            List<Integer> VoteIdList = voteSimulatorMapper.getMyParticipatedVoteId(userId);
-            return getVote(VoteIdList);
+            List<Integer> questionIdList = voteSimulatorMapper.getMyParticipatedQuestionId(userId);
+            return getVote(questionIdList);
         }catch (Exception e){
             System.out.println(e.getMessage());
             return APIResponse.error(500,"[Get User Participation Error]"+e.getMessage());
@@ -124,8 +127,8 @@ public class VoteServiceImpl implements VoteService {
     public APIResponse getUserVote(int userId) {
         lock.lock();
         try {
-            List<Integer> VoteIdList = voteSimulatorMapper.getMyVoteId(userId);
-            return getVote(VoteIdList);
+            List<Integer> questionIdList = voteSimulatorMapper.getMyQuestionId(userId);
+            return getVote(questionIdList);
         }catch (Exception e){
             System.out.println(e.getMessage());
             return APIResponse.error(500,"[Get User Vote Error]"+e.getMessage());
@@ -141,10 +144,10 @@ public class VoteServiceImpl implements VoteService {
         try {
             voteSimulatorMapper.addQuestion(question, userId);
             System.out.println("[question]"+question);
-            int voteId = voteSimulatorMapper.getVoteId(question);
+            int questionId = voteSimulatorMapper.getQuestionId(question);
             for (String choice : choiceList) {
                 int choiceId = choiceList.indexOf(choice) + 1;
-                voteSimulatorMapper.addChoice(choice, choiceId, voteId);
+                voteSimulatorMapper.addChoice(choice, choiceId, questionId);
                 System.out.println("[choice"+choiceId+"]"+choice);
             }
             return APIResponse.success(1);
@@ -158,24 +161,22 @@ public class VoteServiceImpl implements VoteService {
 
     @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
     @Override
-    public APIResponse deleteVote(int userId, int voteId) {
+    public APIResponse deleteVote(int userId, int questionId) {
         lock.lock();
         try {
-            List<Integer> TempList = voteSimulatorMapper.getUserId(voteId, "");
+            List<Integer> TempList = voteSimulatorMapper.getUserId(questionId, "");
             System.out.println(TempList);
             if (TempList.size()!=0) {
                 Integer userIdTemp = TempList.get(0);
                 if(userIdTemp == userId) {
-                    System.out.println(voteSimulatorMapper.getVoteChoice(voteId));
-                    voteSimulatorMapper.deleteQuestion(voteId);
-                    voteSimulatorMapper.deleteChoice(voteId);
-                    voteSimulatorMapper.deleteAnswer(voteId);
+                    System.out.println(voteSimulatorMapper.getVoteChoice(questionId));
+                    voteSimulatorMapper.deleteQuestion(questionId);
                     System.out.println(userId);
                     return APIResponse.success(1);
                 }
                 return APIResponse.error(500, "[Delete Vote Error]Not Your Vote. You can not delete it.\nTry /myVote (Post Method) to Find Correct Vote.");
             } else {
-                return APIResponse.error(500,"[Delete Vote Error]Invalid voteId.\nTry /myVote (Post Method) to Find Correct voteId.");
+                return APIResponse.error(500,"[Delete Vote Error]Invalid questionId.\nTry /myVote (Post Method) to Find Correct questionId.");
             }
         }catch (Exception e){
             System.out.println(e.getMessage());
@@ -187,18 +188,17 @@ public class VoteServiceImpl implements VoteService {
 
     @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
     @Override
-    public APIResponse deleteParticipation(int userId, int voteId) {
+    public APIResponse deleteParticipation(int userId, int questionId) {
         lock.lock();
         try {
-            List<Integer> TempList = voteSimulatorMapper.getUserId(voteId, "");
+            List<Integer> TempList = voteSimulatorMapper.getUserId(questionId, "");
             System.out.println(TempList);
             if (TempList.size()!=0) {
-                int choiceId = voteSimulatorMapper.getChoiceId(userId, voteId);
-                voteSimulatorMapper.decreaseChoiceTimes(voteId, choiceId);
-                voteSimulatorMapper.deleteOneAnswer(voteId, choiceId);
+                int choiceId = voteSimulatorMapper.getChoiceId(userId, questionId);
+                voteSimulatorMapper.deleteOneAnswer(questionId, choiceId);
                 return APIResponse.success(1);
             } else {
-                return APIResponse.error(500,"[Delete Vote Error]Invalid voteId.\nTry /vote to Find Correct voteId.");
+                return APIResponse.error(500,"[Delete Vote Error]Invalid questionId.\nTry /vote to Find Correct questionId.");
             }
         }catch (Exception e){
             System.out.println(e.getMessage());
@@ -210,22 +210,22 @@ public class VoteServiceImpl implements VoteService {
 
     @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
     @Override
-    public APIResponse participateVote(int userId, int voteId, int choiceId) {
+    public APIResponse participateVote(int userId, int questionId, int choiceId) {
         lock.lock();
         try {
             System.out.println("[Participate Vote]");
-            if(voteSimulatorMapper.getQuestion(voteId).size()==0)
-                return APIResponse.error(500,"[Participate Vote Error]Invalid voteId.\nTry /question for Correct voteId.");
-            System.out.println(userSchemaMapper.getUserName(userId)+" Participate Vote " + voteId + " " + voteSimulatorMapper.getVoteQuestion(voteId));
-            List<String> choiceList = voteSimulatorMapper.getChoice(choiceId, voteId);
+            if(voteSimulatorMapper.getQuestion(questionId).size()==0)
+                return APIResponse.error(500,"[Participate Vote Error]Invalid questionId.\nTry /question for Correct questionId.");
+            System.out.println(userSchemaMapper.getUserName(userId)+" Participate Vote " + questionId + " " + voteSimulatorMapper.getVoteQuestion(questionId));
+            List<String> choiceList = voteSimulatorMapper.getChoice(choiceId, questionId);
             if(choiceList.size()==0)
                 return APIResponse.error(500, "[Participate Vote Error]Invalid choiceId.\nTry /choice for Correct choiceId.");
             String choice = choiceList.get(0);
-            if(voteSimulatorMapper.existAnswer(voteId, userId).size()==0) {
+            if(voteSimulatorMapper.existAnswer(questionId, userId).size()==0) {
                 System.out.println("[choice]"+choice);
-                voteSimulatorMapper.updateChoiceTimes(voteId, choiceId);
-                voteSimulatorMapper.addAnswer(voteId, choiceId, userId);
-                System.out.println("[answer]"+voteId+" "+choiceId+" "+userId);
+                voteSimulatorMapper.updateChoiceTimes(questionId, choiceId);
+                voteSimulatorMapper.addAnswer(questionId, choiceId, userId);
+                System.out.println("[answer]"+questionId+" "+choiceId+" "+userId);
                 return APIResponse.success(1);
             }else{
                 return APIResponse.error(500,"[Participate Vote Error]You've Voted this Before.");
@@ -239,11 +239,11 @@ public class VoteServiceImpl implements VoteService {
 
     @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
     @Override
-    public APIResponse reParticipate(int userId, int voteId, int choiceId) {
+    public APIResponse reParticipate(int userId, int questionId, int choiceId) {
         lock.lock();
         try {
-            System.out.println(deleteParticipation(userId, voteId));
-            return participateVote(userId, voteId, choiceId);
+            System.out.println(deleteParticipation(userId, questionId));
+            return participateVote(userId, questionId, choiceId);
         }catch (Exception e){
             System.out.println(e.getMessage());
             return APIResponse.error(500, "[Re Participate Error]"+e.getMessage());
@@ -255,17 +255,17 @@ public class VoteServiceImpl implements VoteService {
     /*
     @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
     @Override
-    public APIResponse updateVote(int userId, int voteId, String question, List<String> addChoiceList, List<Integer> deChoiceList) {
+    public APIResponse updateVote(int userId, int questionId, String question, List<String> addChoiceList, List<Integer> deChoiceList) {
         lock.lock();
         try {
-            if(voteSimulatorMapper.getQuestion(voteId).size()==0)
-                return APIResponse.error(500,"[Participate Vote Error]Invalid voteId.\nTry /allQuestion for Correct voteId.");
+            if(voteSimulatorMapper.getQuestion(questionId).size()==0)
+                return APIResponse.error(500,"[Participate Vote Error]Invalid questionId.\nTry /allQuestion for Correct questionId.");
             if(!"".equals(question))
-                voteSimulatorMapper.updateQuestion(question, voteId);
+                voteSimulatorMapper.updateQuestion(question, questionId);
             if(addChoiceList.size()!=0){
-                int choiceId=1, maxId = voteSimulatorMapper.getMaxChoiceId(voteId);
+                int choiceId=1, maxId = voteSimulatorMapper.getMaxChoiceId(questionId);
                 for(String choice:addChoiceList){
-                    voteSimulatorMapper.addChoice(choice, choiceId+maxId, voteId);
+                    voteSimulatorMapper.addChoice(choice, choiceId+maxId, questionId);
                 }
             }
             if(deChoiceList.size()!=0){
@@ -277,3 +277,4 @@ public class VoteServiceImpl implements VoteService {
     }
     */
 }
+

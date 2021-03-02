@@ -7,9 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChoiceSchema {
-    public int voteId;
-    public int choiceId;
-    public String choice;
-    public int times;
+public class User {
+    public int userId;
+    public String name;
+    public String code;
 }

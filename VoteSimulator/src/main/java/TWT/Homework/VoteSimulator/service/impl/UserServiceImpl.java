@@ -54,16 +54,16 @@ public class UserServiceImpl implements UserService {
 
     @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
     @Override
-    public APIResponse updateUser(String name, String code, String newCode, String newName) {
+    public APIResponse updateUser(String name, String newCode, String newName) {
         lock.lock();
         try {
             if ("".equals(newCode) && "".equals(newName))
                 return APIResponse.error(500, "[Variable Error]Invalid newName and newCode.");
             else if ("".equals(newCode))
-                return APIResponse.success(userSchemaMapper.updateUserName(name, code, newName));
+                return APIResponse.success(userSchemaMapper.updateUserName(name, newName));
             else if ("".equals(newName))
-                return APIResponse.success(userSchemaMapper.updateUserCode(name, code, newCode));
-            return APIResponse.success(userSchemaMapper.updateUserNameCode(name, code, newName, newCode));
+                return APIResponse.success(userSchemaMapper.updateUserCode(name, newCode));
+            return APIResponse.success(userSchemaMapper.updateUserNameCode(name, newName, newCode));
         }catch (Exception e){
             return APIResponse.error(500, "[Update Error]"+e.getMessage());
         }finally {
@@ -81,8 +81,8 @@ public class UserServiceImpl implements UserService {
             List<String> managerCodeList = userSchemaMapper.getManagerCode(managerName);
             if(managerCode.equals(managerCodeList.get(0))) {
                 int userId = userSchemaMapper.getUserId(name).get(0);
-                List<Integer> voteIdList = voteSimulatorMapper.getMyParticipatedVoteId(userId);
-                for(int voteId:voteSimulatorMapper.getMyVoteId(userId)){
+                List<Integer> voteIdList = voteSimulatorMapper.getMyParticipatedQuestionId(userId);
+                for(int voteId:voteSimulatorMapper.getMyQuestionId(userId)){
                     if(voteIdList.contains(voteId)) continue;
                     voteIdList.add(voteId);
                 }

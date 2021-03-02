@@ -5,11 +5,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class QuestionSchema {
-    public int voteId;
-    public String question;
+@NoArgsConstructor
+public class Answer {
     public int userId;
-    public String userName;
+    public int questionId;
+    public int choiceId;
 }

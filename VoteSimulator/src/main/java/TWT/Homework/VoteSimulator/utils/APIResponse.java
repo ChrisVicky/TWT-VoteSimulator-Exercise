@@ -1,11 +1,8 @@
 package TWT.Homework.VoteSimulator.utils;
 
-import TWT.Homework.VoteSimulator.entity.UserSchema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 
 @Data
 @NoArgsConstructor
