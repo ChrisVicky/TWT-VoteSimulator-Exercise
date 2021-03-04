@@ -12,6 +12,16 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(getUserInterceptor())
                 .excludePathPatterns("/logIn")
+                .excludePathPatterns("/getUser")
+                .excludePathPatterns("/addUser")
+                .excludePathPatterns("/findCode")
+                .excludePathPatterns("/userName")
+
+                .excludePathPatterns("/result")
+                .excludePathPatterns("/vote")
+                .excludePathPatterns("/choice")
+                .excludePathPatterns("/question")
+
                 .excludePathPatterns("/testConnection");
     }
 

@@ -62,13 +62,17 @@ public class VoteServiceImpl implements VoteService {
         String userName, question;
         List<Choice> choiceList;
         for (Integer questionId : questionIdList) {
+            System.out.println("[Internal Message]: Trying to Get vote with QuestionId " + questionId);
             TempList = voteSimulatorMapper.getQuestion(questionId);
             if (TempList.size()==0)
                 return APIResponse.error(500, "[Get Individual Question Error]Invalid questionId " + questionId);
-            if(voteSimulatorMapper.getExistence(questionId)==1) continue;
+            if(voteSimulatorMapper.getExistence(questionId)==1){
+                System.out.println("[Internal Message]: Vote (QuestionId) " + questionId + " has been deleted.");
+                continue;
+            }
             question = TempList.get(0);
             choiceList = voteSimulatorMapper.getVoteChoice(questionId);
-            for(Choice choice:choiceList){
+            for(Choice choice : choiceList){
                 choice.times = voteSimulatorMapper.getChoiceTimes(questionId, choice.choiceId);
             }
             userId = voteSimulatorMapper.getUserId(questionId,"").get(0);
@@ -232,6 +236,36 @@ public class VoteServiceImpl implements VoteService {
             }
         }catch (Exception e){
             return APIResponse.error(500, "[Participate Vote Error]"+e.getMessage());
+        }finally {
+            lock.unlock();
+        }
+    }
+
+    @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
+    @Override
+    public APIResponse multipleParticipateVote(int userId, int questionId, List<Integer> choiceIdList) {
+        lock.lock();
+        try {
+            System.out.println("[Participate Vote Multiply]");
+            if(voteSimulatorMapper.getQuestion(questionId).size()==0)
+                return APIResponse.error(500,"[Participate Vote Error]Invalid questionId.\nTry /question for Correct questionId.");
+            System.out.println(userSchemaMapper.getUserName(userId)+" Participate Vote " + questionId + " " + voteSimulatorMapper.getVoteQuestion(questionId));
+            for(Integer choiceId : choiceIdList){
+                List<String> choiceList = voteSimulatorMapper.getChoice(choiceId, questionId);
+                if(choiceList.size()==0)
+                    return APIResponse.error(500, "[Participate Vote Error]Invalid choiceId.\nTry /choice for Correct choiceId.");
+                String choice = choiceList.get(0);
+                if(voteSimulatorMapper.existAnswer(questionId, userId).size()==0) {
+                    System.out.println("[choice]"+choice);
+                    voteSimulatorMapper.updateChoiceTimes(questionId, choiceId);
+                    voteSimulatorMapper.addAnswer(questionId, choiceId, userId);
+                    System.out.println("[answer]"+questionId+" "+choiceId+" "+userId);
+                }
+            }
+            return APIResponse.success(1);
+        }catch (Exception e){
+            e.printStackTrace();
+            return APIResponse.error(500, "[Vote Multiply Error]:" + e.getMessage());
         }finally {
             lock.unlock();
         }

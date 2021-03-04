@@ -15,6 +15,7 @@ public interface VoteService {
     public APIResponse deleteVote(int userId, int questionId);
     public APIResponse deleteParticipation(int userId, int questionId);
     public APIResponse participateVote(int userId, int questionId, int choiceId);
+    public APIResponse multipleParticipateVote(int userId, int questionId, List<Integer> choiceIdList);
     public APIResponse reParticipate(int userId, int questionId, int choiceId);
 }
 

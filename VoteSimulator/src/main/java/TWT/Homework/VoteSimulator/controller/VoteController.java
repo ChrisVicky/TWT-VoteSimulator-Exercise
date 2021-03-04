@@ -51,6 +51,15 @@ public class VoteController {
         return voteService.participateVote(userId, questionId, choiceId);
     }
 
+    @PostMapping("multipleParticipate")
+    public APIResponse multipleParticipateVote(@RequestParam("questionId") int questionId,
+                                               @RequestParam("choiceId") List<Integer> choiceIdList){
+        System.out.println("Log in to participate in vote " + questionId + " multiply.");
+        String name = session.getAttribute("user").toString();
+        int userId = userSchemaMapper.getUserId(name).get(0);
+        return voteService.multipleParticipateVote(userId, questionId, choiceIdList);
+    }
+
     @PostMapping("/deleteVote")
     public APIResponse deleteVote(@RequestParam("questionId") int questionId){
         String name = session.getAttribute("user").toString();
@@ -77,6 +86,7 @@ public class VoteController {
 
     @PostMapping("/result")
     public APIResponse getResult(@RequestParam("questionId") int questionId){
+        System.out.println("Get Result of Vote with Question Id " + questionId);
         return voteService.getResult(questionId);
     }
 
