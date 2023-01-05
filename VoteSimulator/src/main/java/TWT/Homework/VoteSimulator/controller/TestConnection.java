@@ -1,0 +1,12 @@
+package TWT.Homework.VoteSimulator.controller;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class TestConnection {
+    @GetMapping("/testConnection")
+    public String test(){
+        return "Hello Word";
+    }
+}

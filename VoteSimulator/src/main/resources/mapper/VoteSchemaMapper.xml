@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="TWT.Homework.VoteSimulator.dao.VoteSimulatorMapper">
+
+    <insert id="addQuestion"> INSERT INTO question (question, user_id, existence) VALUES (#{question}, #{userId}, 0); </insert>
+    <insert id="addChoice"> INSERT INTO choice (choice, choice_id, question_id) VALUES (#{choice}, #{choiceId}, #{questionId}); </insert>
+    <insert id="addAnswer"> INSERT INTO answer (question_id, choice_id, user_id) VALUES (#{questionId}, #{choiceId}, #{userId}); </insert>
+
+    <delete id="deleteOneAnswer"> DELETE FROM answer WHERE question_id = #{questionId} AND choice_id = #{choiceId} ; </delete>
+
+    <update id="deleteQuestion"> UPDATE question SET existence = 1; </update>
+    <update id="recoverQuestion"> UPDATE question SET existence = 0;</update>
+    <update id="updateQuestion"> UPDATE question SET question = #{question} WHERE question_id = #{questionId}; </update>
+
+    <select id="getAllQuestion" resultType="Question"> SELECT question.*, user.NAME as userName FROM question, user WHERE question.user_id = user.user_id; </select>
+    <select id="getAllChoice" resultType="Choice"> SELECT * FROM choice; </select>
+    <select id="getAllQuestionId" resultType="int"> SELECT question_id FROM question; </select>
+    <select id="getMyQuestionId" resultType="int"> SELECT question_id FROM question WHERE user_id = #{useId}; </select>
+    <select id="getQuestion" resultType="String"> SELECT question FROM question WHERE question.question_id = #{questionId}; </select>
+    <select id="getVoteChoice" resultType="Choice"> SELECT * FROM choice WHERE choice.question_id = #{questionId}; </select>
+    <select id="getVoteQuestion" resultType="String"> SELECT question FROM question WHERE question_id = #{questionId}; </select>
+    <select id="getQuestionId" resultType="int"> SELECT question_id FROM question WHERE question.question = #{question}; </select>
+    <select id="getUserId" resultType="int"> SELECT user_id FROM question WHERE question.question_id = #{questionId} OR question.question=#{question}; </select>
+    <select id="getChoice" resultType="String"> SELECT choice FROM choice WHERE choice_id = #{choiceId} AND question_id = #{questionId}; </select>
+    <select id="checkExistVote" resultType="boolean"> SELECT * FROM question WHERE question.question_id=#{questionId}; </select>
+    <select id="existAnswer" resultType="Answer"> SELECT * FROM answer WHERE question_id=#{questionId} AND user_id=#{userId};</select>
+    <select id="getMaxChoiceId" resultType="int"> SELECT MAX(choice_id) FROM choice WHERE question_id = #{questionId}; </select>
+    <select id="getChoiceId" resultType="int"> SELECT choice_id FROM answer WHERE user_id = #{userId} AND question_id = #{questionId}; </select>
+    <select id="getMyParticipatedQuestionId" resultType="int"> SELECT question_id FROM answer WHERE user_id = #{userId}; </select>
+    <select id="getQuestionFull" resultType="Question"> SELECT * FROM question WHERE question_id = #{questionId}; </select>
+    <select id="getExistence" resultType="int"> SELECT existence FROM question WHERE question_id = #{questionId}; </select>
+    <select id="getChoiceTimes" resultType="int"> SELECT COUNT(user_id) FROM answer WHERE question_id = #{questionId} AND choice_id = #{choiceId} ; </select>
+</mapper>
